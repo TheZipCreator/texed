@@ -1,0 +1,24 @@
+# Texed
+**Texed** (pronounced like 'text', /tεkst/) is a text animation engine with a WYSIWYG graphical user interface. It is primarily based off of my previous work on [Texit](https://github.com/thezipcreator/texit), but it is an entirely new engine.
+
+# Controls
+## Windows
+* Left click (title bar) - drag window
+* Left click - interact with UI element
+## Scene
+* Middle mouse drag (background) - Move around scene
+* Left click (while placing) - Place object
+* Ctrl+Middle Click - Remove Object
+* Left click (object) - Edit object
+* Right click (object) - Open object window
+* Middle mouse drag (object) - Move object
+* Ctrl+Z - Undo
+* Ctrl+Shift+Z - Redo
+## Timeline
+* Shift - Play/Pause
+* Ctrl+Shift - Play from camera view
+
+# Credits
+* REXPaint / qbicfeet - `assets/qbicfeet_10x10.png` (note: modified to align with unicode)
+* GNU Unifont - `assets/unifont.png` (note: modified to center 8-width characters)
+* easings.net - Implementation for every easing (note: translated to D).

@@ -677,6 +677,11 @@ final class State {
 	}
 
 	void renderVideo() {
+		// audio should exist
+		if(audio is null) {
+			error(locale["error.need-audio-before-rendering"]);
+			return;
+		}
 		// check if ffmpeg exists before doing anything else
 		// TODO: check ffmpeg version
 		{
@@ -752,7 +757,7 @@ final class State {
 		// display "running ffmpeg..."
 		SDL_SetRenderDrawColor(window.rend, 0, 0, 0, 255);
 		SDL_RenderClear(window.rend);
-		font.render(window.rend, theme.foreground, theme.background, null, Vector!float(0, 0), 40, locale["misc.running-ffmpeg"]);
+		font.render(window.rend, theme.foreground, theme.background, null, Vector!float(0, 0), 20, locale["misc.running-ffmpeg"]);
 		SDL_RenderPresent(window.rend);
 
 		// create video with ffmpeg

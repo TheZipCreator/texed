@@ -151,6 +151,9 @@ final class State {
 			new Button(0.2, 16, locale["window.events.image"], {
 				toPlace = new ImageEvent(currTime, float.infinity, Vector!float(0, 0), 1, "");
 			}),
+			new Button(0.2, 16, locale["window.events.box"], {
+				toPlace = new BoxEvent(currTime, float.infinity, Vector!float(0, 0), Vector!int(3, 3), 1, foregroundColor, backgroundColor);
+			}),
 		));
 		auto wProject = new Window(locale["window.project.title"], Rect!int(950, 30, 330, 300), false, null);
 		wProject.widget = new VBox(1,

@@ -1,7 +1,7 @@
 /// Contains code that deals with events
 module texed.event;
 
-import std.conv, std.variant, std.json, std.utf, std.typecons, std.math, std.path;
+import std.conv, std.variant, std.json, std.utf, std.typecons, std.math, std.path, std.array;
 
 import texed.state, texed.types, texed.ui, texed.sdl, texed.locale, texed.misc;
 
@@ -111,11 +111,11 @@ class TextEvent : Event, Selectable, Placeable, SceneGrabbable {
 				new NumberEdit!float(0.1, "start-time", 16, 0.0, maxTime, 0.1, start),
 				new Label(0.1, 16, locale["event.end-time"]),
 				new NumberEdit!float(0.1, "end-time", 16, 0.0, float.infinity, 0.1, end),
-				new Label(0.1, 16, locale["event.text.font-size"]),
+				new Label(0.1, 16, locale["event.font-size"]),
 				new NumberEdit!float(0.1, "font-size", 16, 1.0, float.infinity, 0.1, fontSize),
-				new Label(0.1, 16, locale["event.text.foreground"]),
+				new Label(0.1, 16, locale["event.foreground"]),
 				new ColorSelector(0.1, "foreground", 16, fg),
-				new Label(0.1, 16, locale["event.text.background"]),
+				new Label(0.1, 16, locale["event.background"]),
 				new ColorSelector(0.1, "background", 16, bg),
 				new ScriptableWidget!Nothing(0, "", Nothing(), delegate(ScriptableWidget!Nothing self, State state, Rect!int rect) {
 					// update text properties
@@ -521,5 +521,173 @@ class ImageEvent : Event, Placeable, SceneGrabbable {
 	///
 	override void postInit(State state) {
 		loadImage(state);
+	}
+}
+
+/// Event that shows a box made of text.
+class BoxEvent : Event, Placeable, SceneGrabbable {
+	enum CORNER = "+"; /// Corner character
+	enum HORIZ = "-"; /// Horizontal character
+	enum VERT = "|"; /// Vertical character
+	
+	Vector!float pos; /// Position of this box
+	Vector!int size; /// Size of this box
+	float fontSize; /// Size of the font
+	Color bg; /// Background color
+	Color fg; /// Foreground color
+	
+	/**
+		Region of the box when rendered onto the screen. The rects in this region are
+		ordered like so:
+
+		* rects[0] = top (excluding last plus)
+		* rect[1] = left (excluding last plus)
+		* rects[2] = right
+		* rects[3] = bottom
+	*/
+	Region!int region;
+
+	private Vector!int grabbedPos;
+	private bool grabbedRight, grabbedBottom;
+	
+	///
+	this(float start, float end, Vector!float pos, Vector!int size, float fontSize, Color fg, Color bg) {
+		super(start, end);
+		this.pos = pos;
+		this.size = size;
+		this.fontSize = fontSize;
+		this.fg = fg;
+		this.bg = bg;
+	}
+	
+	/// Renders the box
+	void render(State state, ubyte alpha) {
+		string rep(string s, size_t n) {
+			auto ap = appender!string;
+			ap.reserve(n*s.length);
+			for(size_t i = 0; i < n; i++)
+				ap ~= s;
+			return ap[];
+		}
+		auto horiz = rep(HORIZ, size.x-2);
+		auto vert = rep(VERT~'\n', size.y-2);
+		auto fgc = fg.withAlpha(alpha);
+		auto bgc = bg.withAlpha(alpha);
+		region.rects = [
+			// top
+			state.font.render(state.window.rend, fgc, bgc, state.currentView, pos, fontSize, CORNER~horiz).to!int,
+			// left
+			state.font.render(state.window.rend, fgc, bgc, state.currentView, pos+Vector!float(0, 1)*fontSize, fontSize, vert).to!int,
+			// right
+			// the extra ~" " below is to make the bottom and right boxes overlap, so
+			// when grabbing the bottom right corner, you scale both sides.
+			state.font.render(state.window.rend, fgc, bgc, state.currentView, pos+Vector!float(size.x-1, 0)*fontSize, fontSize, CORNER~"\n"~vert~" ").to!int,
+			// bottom
+			state.font.render(state.window.rend, fgc, bgc, state.currentView, pos+Vector!float(0, size.y-1)*fontSize, fontSize, CORNER~horiz~CORNER).to!int,
+		];
+	}
+
+	///
+	override void time(State state, float rel, float abs) {
+		render(state, 255);
+	}
+	
+	///
+	void preview(State state) {
+		render(state, 128);
+	}
+
+	///
+	void placeMove(State state, Vector!int mouse) {
+		pos = state.currentView.invTransform(mouse.to!float).snap(state.snap);
+	}
+
+	///
+	void place(State state) {
+		state.addEvent(this);
+	}
+
+	///
+	void remove(State state) {
+		state.removeEvent(this);
+	}
+
+	///
+	Variant getGrabInfo() => Variant(Tuple!(Vector!float, Vector!int)(pos, size));
+
+	///
+	void setGrabInfo(Variant var) {
+		auto tup = var.get!(Tuple!(Vector!float, Vector!int));
+		pos = tup[0];
+		size = tup[1];
+	}
+
+	///
+	void grabbed(State state, Vector!int mouse) {
+		grabbedRight = region.rects[2].contains(mouse);
+		grabbedBottom = region.rects[3].contains(mouse);
+		grabbedPos = mouse-region.rects[0].pos;
+	}
+
+	///
+	void grabMove(State state, Vector!int mouse) {
+		if(!grabbedRight && !grabbedBottom) {
+			pos = state.currentView.invTransform((mouse-grabbedPos).to!float).snap(state.snap);
+			return;
+		}
+		auto off = ((state.currentView.invTransform(mouse.to!float)-pos)/fontSize).to!int;
+		if(off.x < 3)
+			off.x = 3;
+		if(off.y < 3)
+			off.y = 3;
+		if(grabbedRight)
+			size.x = off.x;
+		if(grabbedBottom)
+			size.y = off.y;
+	}
+	
+	///
+	ClickResponse mouseClick(State state, MouseButton button, Vector!int mouse) {
+		if(state.playTime < start || state.playTime > end)
+			return ClickResponse.PASS;
+		if(region.contains(mouse)) {
+			if(button == MouseButton.MIDDLE)
+				return ClickResponse.GRAB;
+			if(button == MouseButton.RIGHT)
+				return ClickResponse.CLICK;
+			return ClickResponse.BLOCK;
+		}
+		return ClickResponse.PASS;
+	}
+
+	///
+	void clicked(State state, MouseButton button, Vector!int mouse) {
+		if(button == MouseButton.RIGHT) {
+			// open object window
+			Window win;
+			float maxTime = state.audio is null ? float.infinity : state.audio.duration;
+			win = new Window(locale["event.box.title"], Rect!int(0, 0, 300, 300), true, new VBox(1,
+				new Label(0.1, 16, locale["event.start-time"]),
+				new NumberEdit!float(0.1, "start-time", 16, 0.0, maxTime, 0.1, start),
+				new Label(0.1, 16, locale["event.end-time"]),
+				new NumberEdit!float(0.1, "end-time", 16, 0.0, float.infinity, 0.1, end),
+				new Label(0.1, 16, locale["event.font-size"]),
+				new NumberEdit!float(0.1, "font-size", 16, 1.0, float.infinity, 0.1, fontSize),
+				new Label(0.1, 16, locale["event.foreground"]),
+				new ColorSelector(0.1, "foreground", 16, fg),
+				new Label(0.1, 16, locale["event.background"]),
+				new ColorSelector(0.1, "background", 16, bg),
+				new ScriptableWidget!Nothing(0, "", Nothing(), delegate(ScriptableWidget!Nothing self, State state, Rect!int rect) {
+					// update text properties
+					// TODO: make this undoable
+					start = win.get!(NumberEdit!float)("start-time").value;
+					end = win.get!(NumberEdit!float)("end-time").value;
+					fontSize = win.get!(NumberEdit!float)("font-size").value;
+					fg = win.get!ColorSelector("foreground").color;
+					bg = win.get!ColorSelector("background").color;
+				})
+			));
+			state.openWindow(win);
+		}
 	}
 }

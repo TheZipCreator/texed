@@ -57,6 +57,14 @@ JSONValue serialize(Event e) {
 		j["scale"] = ie.scale;
 		j["path"] = ie.path;
 	}
+	if(auto be = cast(BoxEvent)e) {
+		j["type"] = "box";
+		j["pos"] = be.pos.serialize();
+		j["size"] = be.size.serialize();
+		j["fontSize"] = be.fontSize;
+		j["bg"] = be.bg.serialize();
+		j["fg"] = be.fg.serialize();
+	}
 	return j;
 }
 
@@ -89,6 +97,15 @@ Event deserializeEvent(JSONValue j) {
 				deserializeVector!float(j["pos"]),
 				j["scale"].get!float,
 				j["path"].get!string
+			);
+		case "box":
+			return new BoxEvent(
+				start, end,
+				deserializeVector!float(j["pos"]),
+				deserializeVector!int(j["size"]),
+				j["fontSize"].get!float,
+				deserializeColor(j["fg"]),
+				deserializeColor(j["bg"])
 			);
 		default:
 			return null;

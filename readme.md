@@ -17,6 +17,8 @@
 ## Timeline
 * Shift - Play/Pause
 * Ctrl+Shift - Play from camera view
+* Period - Go forwards 0.1s
+* Comma - Go backwards 0.1s
 
 # Credits
 * REXPaint / qbicfeet - `assets/qbicfeet_10x10.png` (note: modified to align with unicode)

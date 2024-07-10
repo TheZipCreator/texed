@@ -356,6 +356,16 @@ final class State {
 						if(keysym.mod & KMOD_CTRL)
 							save();
 						break;
+					case SDLK_PERIOD:
+						if(!inEditor)
+							break;
+						currTime += 0.1;
+						break;
+					case SDLK_COMMA:
+						if(!inEditor)
+							break;
+						currTime -= 0.1;
+						break;
 					default:
 						break;
 				}

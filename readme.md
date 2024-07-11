@@ -8,7 +8,8 @@
 ## Scene
 * Middle mouse drag (background) - Move around scene
 * Left click (while placing) - Place object
-* Ctrl+Middle Click - Remove Object
+* Ctrl+Right Click - Remove Object
+* Ctrl+Middle Click - Clone Object
 * Left click (object) - Edit object
 * Right click (object) - Open object window
 * Middle mouse drag (object) - Move object

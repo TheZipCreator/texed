@@ -43,8 +43,13 @@ interface SceneGrabbable : Grabbable {
 	void setGrabInfo(Variant var); /// Sets the information the was changed after a grab
 }
 
+/// Any cloneable event (must also be a [SceneGrabbable])
+interface Cloneable : SceneGrabbable, Placeable {
+	Cloneable clone(State state); /// Clones the event
+}
+
 /// A text event
-class TextEvent : Event, Selectable, Placeable, SceneGrabbable {
+class TextEvent : Event, Selectable, Placeable, SceneGrabbable, Cloneable {
 	Vector!float pos; /// Position of text
 	string text; /// Text to draw
 	float fontSize; /// Font size of the text
@@ -223,10 +228,13 @@ class TextEvent : Event, Selectable, Placeable, SceneGrabbable {
 	void grabMove(State state, Vector!int mouse) {
 		pos = state.currentView.invTransform((mouse-grabbedPos).to!float).snap(state.snap);
 	}
+
+	///
+	Cloneable clone(State state) => new TextEvent(pos, start, end, fg, bg, fontSize, text);
 }
 
 /// Moves or zooms the camera
-class CameraEvent : Event, Placeable, SceneGrabbable {
+class CameraEvent : Event, Placeable, SceneGrabbable, Cloneable {
 	private enum TRANS_RECT_SIZE = 2.5;
 	private enum ZOOM_RECT_BORDER = 10;
 
@@ -395,10 +403,14 @@ class CameraEvent : Event, Placeable, SceneGrabbable {
 		ante = tuple[0];
 		post = tuple[1];
 	}
+	
+	///
+	Cloneable clone(State state) => new CameraEvent(start, end, easing, ante.translation, ante.zoom, post.translation, post.zoom);
+
 }
 
 /// Event that shows an image
-class ImageEvent : Event, Placeable, SceneGrabbable {
+class ImageEvent : Event, Placeable, SceneGrabbable, Cloneable {
 	/// Global image scale, multiplied by [scale], to get the final scale.
 	enum GLOBAL_SCALE = 1/40f;
 
@@ -515,6 +527,8 @@ class ImageEvent : Event, Placeable, SceneGrabbable {
 
 	///
 	void loadImage(State state) {
+		if(path == "")
+			return;
 		image = Image.load(state.window, buildPath(projDir(state.name), path));
 	}
 	
@@ -522,10 +536,17 @@ class ImageEvent : Event, Placeable, SceneGrabbable {
 	override void postInit(State state) {
 		loadImage(state);
 	}
+
+	///
+	Cloneable clone(State state) {
+		auto evt = new ImageEvent(start, end, pos, scale, path);
+		evt.postInit(state);
+		return evt;
+	}
 }
 
 /// Event that shows a box made of text.
-class BoxEvent : Event, Placeable, SceneGrabbable {
+class BoxEvent : Event, Placeable, SceneGrabbable, Cloneable {
 	enum CORNER = "+"; /// Corner character
 	enum HORIZ = "-"; /// Horizontal character
 	enum VERT = "|"; /// Vertical character
@@ -690,4 +711,7 @@ class BoxEvent : Event, Placeable, SceneGrabbable {
 			state.openWindow(win);
 		}
 	}
+
+	///
+	Cloneable clone(State state) => new BoxEvent(start, end, pos, size, fontSize, fg, bg);
 }

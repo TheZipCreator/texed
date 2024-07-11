@@ -217,22 +217,52 @@ final class State {
 				auto evt = e.button;
 				auto button = buttonFromIndex(evt.button);
 				auto mousePos = Vector!int(evt.x, evt.y);
-				if(button == MouseButton.MIDDLE && ctrlHeld) {
-					// delete
-					foreach(c; collectClickables()) {
-						auto response = c.mouseClick(this, button, mousePos);
-						switch(response) {
-							case ClickResponse.PASS:
-								break;
-							default:
-								// remove, if relevant
-								if(auto p = cast(Placeable)c) {
-									perform(new RemoveAction(p));
+				if(ctrlHeld) {
+					switch(button) {
+						case MouseButton.RIGHT:
+							// delete
+							foreach(c; collectClickables()) {
+								auto response = c.mouseClick(this, button, mousePos);
+								switch(response) {
+									case ClickResponse.PASS:
+										break;
+									default:
+										// remove, if relevant
+										if(auto p = cast(Placeable)c) {
+											perform(new RemoveAction(p));
+										}
+										return;
 								}
-								return;
-						}
+							}
+							return;
+						case MouseButton.MIDDLE:
+							// clone
+							foreach(c; collectClickables()) {
+								auto response = c.mouseClick(this, button, mousePos);
+								if(auto cloneable = cast(Cloneable)c) {
+									switch(response) {
+										case ClickResponse.GRAB: {
+											// clone and grab
+											auto clone = cloneable.clone(this);
+											if(auto eventClone = cast(Event)clone)
+												// this is needed because events will usually only know their bounding box after they get rendered.
+												timeEvent(eventClone, playTime); 
+											anteSceneGrabbableInfo = null; // don't try to create a GrabAction for this event
+											clone.grabbed(this, mousePos);
+											selected = null;
+											grabbed = clone;
+											perform(new PlaceAction(clone));
+											break;
+										}
+										default:
+											break;
+									}
+								}
+							}
+							return;
+						default:
+							break;
 					}
-					return;
 				}
 				// place object if there is one to place
 				if(button == MouseButton.LEFT && toPlace !is null) {
@@ -304,8 +334,9 @@ final class State {
 				auto button = buttonFromIndex(evt.button);
 				if(grabbed !is null) {
 					if(auto sg = cast(SceneGrabbable)grabbed) {
-						perform(new GrabAction(sg, anteSceneGrabbableInfo, sg.getGrabInfo()));
-						anteSceneGrabbableInfo = Variant();
+						if(anteSceneGrabbableInfo != null)
+							perform(new GrabAction(sg, anteSceneGrabbableInfo, sg.getGrabInfo()));
+						anteSceneGrabbableInfo = null;
 					}
 					grabbed = null;
 				}
@@ -411,17 +442,22 @@ final class State {
 		}
 	}
 
+	private void timeEvent(Event evt, float time) {
+		float rel = (time-evt.start)/(evt.end-evt.start), abs = time-evt.start;
+		evt.time(this, rel, abs);
+	}
+
+	private void timeEvent(Event evt) {
+		timeEvent(evt, playTime);
+	}
+
 	/// Renders the scene
 	void render() {
 		float time = playTime();
-		void timeEvent(Event evt) {
-			float rel = (time-evt.start)/(evt.end-evt.start), abs = time-evt.start;
-			evt.time(this, rel, abs);
-		}
 		// render channel 0 events
 		foreach(evt; events[0]) {
 			if(time >= evt.start && time <= evt.end)
-				timeEvent(evt);
+				timeEvent(evt, time);
 		}
 		// render other events
 		for(size_t i = 1; i < CHANNEL_COUNT; i++) {

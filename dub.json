@@ -13,7 +13,7 @@
 		"SDL_Mixer_2_6", "SDL_Image_2_6"
 	],
 	"libs": [
-		"SDL2", "SDL2_mixer", "SDL2_image", "asound"
+		"SDL2", "SDL2_mixer", "SDL2_image"
 	],
 	"description": "A text animation engine with a graphical user interface.",
 	"license": "GPL-3.0-or-later",

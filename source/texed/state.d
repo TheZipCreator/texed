@@ -244,9 +244,12 @@ final class State {
 										case ClickResponse.GRAB: {
 											// clone and grab
 											auto clone = cloneable.clone(this);
-											if(auto eventClone = cast(Event)clone)
+											if(auto eventClone = cast(Event)clone) {
+												// set start to current time, since that's more intuitive
+												eventClone.start = currTime;
 												// this is needed because events will usually only know their bounding box after they get rendered.
 												timeEvent(eventClone, playTime); 
+											}
 											anteSceneGrabbableInfo = null; // don't try to create a GrabAction for this event
 											clone.grabbed(this, mousePos);
 											selected = null;

@@ -17,6 +17,7 @@
 * Middle mouse drag (object) - Move object
 * Ctrl+Z - Undo
 * Ctrl+Shift+Z - Redo
+* V - Swap between editor and camera view.
 ## Timeline
 * Shift - Play/Pause
 * Ctrl+Shift - Play from camera view

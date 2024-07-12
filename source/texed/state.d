@@ -371,6 +371,7 @@ final class State {
 						if(!inEditor)
 							break;
 						if(keysym.mod & KMOD_CTRL) {
+							// undo/redo
 							if(keysym.mod & KMOD_SHIFT)
 								redo();
 							else
@@ -378,6 +379,7 @@ final class State {
 						}
 						break;
 					case SDLK_SPACE:
+						// paused/unpause
 						pause(!paused);
 						if(paused)
 							currentView = editorView;
@@ -388,17 +390,24 @@ final class State {
 						if(!inEditor)
 							break;
 						if(keysym.mod & KMOD_CTRL)
+							// save
 							save();
 						break;
 					case SDLK_PERIOD:
+						// unadvance(?) time
 						if(!inEditor)
 							break;
 						currTime += 0.1;
 						break;
 					case SDLK_COMMA:
+						// advance time
 						if(!inEditor)
 							break;
 						currTime -= 0.1;
+						break;
+					case SDLK_v:
+						// swap view
+						currentView = currentView == editorView ? cameraView : editorView;
 						break;
 					default:
 						break;

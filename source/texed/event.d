@@ -433,8 +433,11 @@ class ImageEvent : Event, Placeable, SceneGrabbable, Cloneable {
 	/// Renders the image
 	void render(State state) {
 		auto img = image is null ? state.missingImage : image;
-		auto rect = state.currentView.transform(Rect!float(pos, Vector!float(img.width, img.height)*scale*GLOBAL_SCALE));
+		auto sceneRect = Rect!float(pos, Vector!float(img.width, img.height)*scale*GLOBAL_SCALE);
+		auto rect = state.currentView.transform(sceneRect);
 		lastRect = rect.to!int;
+		if(!state.currentView.visible.collides(sceneRect))
+			return; // cull
 		auto sdlRect = rect.toSDL();
 		SDL_RenderCopyF(state.window.rend, img.texture, null, &sdlRect);
 	}

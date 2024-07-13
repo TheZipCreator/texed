@@ -19,8 +19,8 @@
 * Ctrl+Shift+Z - Redo
 * V - Swap between editor and camera view.
 ## Timeline
-* Shift - Play/Pause
-* Ctrl+Shift - Play from camera view
+* Space - Play/Pause
+* Ctrl+Space - Play from camera view
 * Period - Go forwards 0.1s
 * Comma - Go backwards 0.1s
 

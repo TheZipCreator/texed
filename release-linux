@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Builds for Linux 
+
+dub build -b=release --arch=x86_64-linux-gnu
+mkdir -p release
+tar cfJ release/texed-linux-x86_64.tar.xz texed assets

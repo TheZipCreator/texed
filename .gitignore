@@ -16,3 +16,4 @@ texed-test-*
 *.lst
 
 projects/
+release/

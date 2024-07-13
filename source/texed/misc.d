@@ -3,6 +3,9 @@ module texed.misc;
 
 import std.file, std.path, std.process, std.string;
 
+/// Current Texed version
+enum TEXED_VERSION = "0.1.0";
+
 /// Gets the executable's directory
 string exeDir() => dirName(thisExePath);
 /// Gets the project directory

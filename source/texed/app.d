@@ -1,7 +1,7 @@
 /// The main module, contains basic SDL boilerplate
 module texed.app;
 
-import std.path, std.file, std.string;
+import std.path, std.file, std.string, std.format;
 
 import texed.event, texed.state, texed.sdl, texed.types, texed.ui, texed.misc, texed.locale;
 
@@ -32,7 +32,12 @@ int main() {
 	// initialize locales
 	initLocales();
 	// create window
-	auto sdlWindow = SDL_CreateWindow(locale["misc.texed"].toStringz, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	auto sdlWindow = SDL_CreateWindow(
+		locale["misc.title"].format(TEXED_VERSION).toStringz, 
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+		1280, 720, 
+		SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+	);
 	if(!sdlWindow)
 		throw new SDLException();
 	auto sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);

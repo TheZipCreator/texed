@@ -129,6 +129,9 @@ struct Rect(Scalar) {
 
 	/// Creates a [Rect] from the top-left and bottom-right points
 	static This fromPoints(Vect a, Vect b) => This(a, b-a);
+
+	/// Returns true if this rectangle collides with another rectangle
+	bool collides(This other) => pos.x + size.x >= other.pos.x && pos.x <= other.pos.x + other.size.x && pos.y + size.y >= other.pos.y && pos.y <= other.pos.y + other.size.y;
 }
 
 /// A region comprised of rectangles
@@ -164,12 +167,16 @@ class View {
 	Vector!float screenSize; /// Screen size
 	Vector!float translation; /// Translation
 	float zoom; /// Zoom
-
+	
+	///
 	this(Vector!float screenSize, Vector!float translation = DEFAULT_TRANSLATION, float zoom = DEFAULT_ZOOM) {
 		this.screenSize = screenSize;
 		this.translation = translation;
 		this.zoom = zoom;
 	}
+	
+	/// The visible rect, in scene-space
+	Rect!float visible() => Rect!float(translation-screenSize/(2*zoom), screenSize/zoom);
 
 	/// Transforms scene coordinates to screen coordinates
 	Vector!float transform(Vector!float vec) => (vec-translation)*zoom+screenSize/2;
@@ -177,6 +184,8 @@ class View {
 	Vector!float invTransform(Vector!float vec) => (vec-screenSize/2)/zoom+translation;
 	/// Transforms scene coordinates to screen coordinates
 	Rect!float transform(Rect!float rect) => Rect!float(transform(rect.pos), rect.size*zoom);
+	/// Transforms screen coordinates to scene coordinates
+	Rect!float invTransform(Rect!float rect) => Rect!float(invTransform(rect.pos), rect.size/zoom);
 }
 
 /// A color
@@ -320,8 +329,12 @@ final class Font {
 		}
 		// draw character background
 		auto rect = Rect!float(pos, Vector!float(fontSize, fontSize));
-		if(view !is null)
+		if(view !is null) {
+			// culling
+			if(!view.visible.collides(rect))
+				return view.transform(rect);
 			rect = view.transform(rect);
+		}
 		if(bg.a != 0) {
 			bg.draw(rend);
 			{

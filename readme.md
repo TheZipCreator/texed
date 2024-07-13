@@ -1,7 +1,7 @@
 # Texed
 **Texed** (pronounced like 'text', /tεkst/) is a text animation engine with a WYSIWYG graphical user interface. It is primarily based off of my previous work on [Texit](https://github.com/thezipcreator/texit), but it is an entirely new engine.
 
-**NOTE:** Texed is currently in a very early version, and as such, is lacking in many Quality of Life features and most likely still contains many bugs. Use at your own discretion.
+**NOTE:** Texed is currently in a very early state, and as such, is lacking in many Quality of Life features and most likely still contains many bugs. Use at your own discretion.
 
 # Controls
 ## Windows

@@ -643,15 +643,16 @@ final class State {
 	}
 
 	/// Opens an error box
-	void error(string text, string title = "error.title", ThemeColor tc = ThemeColor.ERROR) {
-		auto win = new Window(locale[title], Rect!int((editorView.screenSize/2).to!int-Vector!int(cast(int)text.length*7, 50), Vector!int(cast(int)text.length*15, 100)), true, null);
-		win.widget = new VBox(1,
-			new Label(0.75, 14, tc, text),
-			new Button(0.25, 16, locale["error.ok"], {
-				win.closeClicked = true;
-			})
-		);
-		windows = win~windows;
+	void error(string text, string title = "error.title", uint flags = SDL_MESSAGEBOX_ERROR) {
+		// auto win = new Window(locale[title], Rect!int((editorView.screenSize/2).to!int-Vector!int(cast(int)text.length*7, 50), Vector!int(cast(int)text.length*15, 100)), true, null);
+		// win.widget = new VBox(1,
+		// 	new Label(0.75, 14, tc, text),
+		// 	new Button(0.25, 16, locale["error.ok"], {
+		// 		win.closeClicked = true;
+		// 	})
+		// );
+		// windows = win~windows;
+		SDL_ShowSimpleMessageBox(flags, locale[title].toStringz, text.toStringz, window.win);
 	}
 
 	/// Opens an error box for the given exception and prints it to the console
@@ -663,7 +664,8 @@ final class State {
 	
 	/// Opens an info box
 	void info(string text, string title = "ui.info") {
-		error(text, title, ThemeColor.FOREGROUND);
+		// error(text, title, ThemeColor.FOREGROUND);
+		error(text, title, SDL_MESSAGEBOX_INFORMATION);
 	}
 	
 	/// Opens a yes/no dialogue box

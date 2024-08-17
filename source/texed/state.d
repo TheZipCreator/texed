@@ -159,7 +159,7 @@ final class State {
 		wProject.widget = new VBox(1,
 			new Label(0.1, 16, locale["window.project.name"]),
 			new TextEdit(0.1, "project-name", 16, name, locale["window.project.name"]),
-			new Label(0.1, 16, "Audio Filename"),
+			new Label(0.1, 16, locale["window.project.audio"]),
 			new TextEdit(0.1, "project-audio", 16, audioPath, locale["window.project.audio"]),
 			new Button(0.1, 16, locale["window.project.save"], { save(); }),
 			new HBar(0.05, 20, ThemeColor.PRIMARY),

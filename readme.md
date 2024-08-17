@@ -28,3 +28,4 @@
 * REXPaint / qbicfeet - `assets/qbicfeet_10x10.png` (note: modified to align with unicode)
 * GNU Unifont - `assets/unifont.png` (note: modified to center 8-width characters)
 * easings.net - Implementation for every easing (note: translated to D).
+* @senorconejo (discord) - Brazilian Portuguese translation

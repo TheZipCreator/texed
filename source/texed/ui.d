@@ -434,12 +434,13 @@ class Button : Widget, Clickable {
 
 /// An editable text line
 class TextEdit : Widget, Selectable {
+	
+	mixin TextEditor!(false);
+
 	ThemeColor activeColor; /// Color when selected
 	ThemeColor borderColor; /// Color of the border
 	ThemeColor textColor; /// Color of the text
-	string text; /// The text
 	string placeholder; /// Placeholder text
-	size_t cursorPos; /// The cursor position
 	float fontSize; /// Font size
 	bool clipText; /// Whether text should be clipped
 
@@ -491,43 +492,7 @@ class TextEdit : Widget, Selectable {
 
 	///
 	void input(State state, InputEvent evt) {
-		// this is copypasted.
-		// not sure how I would unify this code
-		dstring str = text.toUTF32;
-		scope(exit) {
-			text = str.toUTF8;
-		}
-		if(auto ce = cast(CharacterEvent)evt) {
-			// insert
-			str = str[0..cursorPos]~ce.which~str[cursorPos..$];
-			cursorPos++;
-		}
-		else if(auto ke = cast(KeyEvent)evt) {
-			switch(ke.keysym.sym) {
-				case SDLK_LEFT:
-					// move to the left
-					if(cursorPos != 0)
-						cursorPos--;
-					break;
-				case SDLK_RIGHT:
-					// move to the right
-					if(cursorPos < str.length)
-						cursorPos++;
-					break;
-				case SDLK_BACKSPACE:
-					// ~~criss cross~~ delete
-					if(cursorPos > 0) {
-						str = str[0..cursorPos-1]~str[cursorPos..$];
-						cursorPos--;
-					}
-					break;
-				case SDLK_RETURN:
-					state.selected = null;
-					break;
-				default:
-					break;
-			}
-		}
+		editText(state, evt);
 	}
 	
 	///

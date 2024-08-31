@@ -50,8 +50,9 @@ interface Cloneable : SceneGrabbable, Placeable {
 
 /// A text event
 class TextEvent : Event, Selectable, Placeable, SceneGrabbable, Cloneable {
+	mixin TextEditor!(true);
+
 	Vector!float pos; /// Position of text
-	string text; /// Text to draw
 	float fontSize; /// Font size of the text
 	Color fg; /// Foreground color
 	Color bg; /// Background color
@@ -60,7 +61,6 @@ class TextEvent : Event, Selectable, Placeable, SceneGrabbable, Cloneable {
 	private Rect!int rect; /// Click rect
 	private Vector!int grabbedPos; /// Where this event was grabbed from
 
-	size_t cursorPos = 0; /// Where the cursor is in the text
 	
 	///
 	this(Vector!float pos, float start, float end, Color fg, Color bg, float fontSize, string text) {
@@ -142,53 +142,7 @@ class TextEvent : Event, Selectable, Placeable, SceneGrabbable, Cloneable {
 	
 	///
 	void input(State state, InputEvent evt) {
-		dstring str = text.toUTF32;
-		scope(exit) {
-			text = str.toUTF8;
-		}
-		if(auto ce = cast(CharacterEvent)evt) {
-			// insert
-			str = str[0..cursorPos]~ce.which~str[cursorPos..$];
-			cursorPos++;
-		}
-		else if(auto ke = cast(KeyEvent)evt) {
-			switch(ke.keysym.sym) {
-				case SDLK_LEFT:
-					// move to the left
-					if(cursorPos != 0)
-						cursorPos--;
-					break;
-				case SDLK_RIGHT:
-					// move to the right
-					if(cursorPos < str.length)
-						cursorPos++;
-					break;
-				case SDLK_BACKSPACE:
-					// ~~criss cross~~ delete
-					if(cursorPos > 0) {
-						str = str[0..cursorPos-1]~str[cursorPos..$];
-						cursorPos--;
-					}
-					break;
-				case SDLK_RETURN:
-					// insert newline
-					str = str[0..cursorPos]~'\n'~str[cursorPos..$];
-					cursorPos++;
-					break;
-				case SDLK_v:
-						if(ke.keysym.mod & KMOD_CTRL) {
-							char* text = SDL_GetClipboardText();
-							scope(exit)
-								SDL_free(text);
-							size_t prevLen = str.length;
-							str ~= text.to!string.toUTF32;
-							cursorPos += str.length-prevLen;
-						}
-						break;
-				default:
-					break;
-			}
-		}
+		editText(state, evt);
 	}
 
 	///

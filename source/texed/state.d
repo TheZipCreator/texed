@@ -73,7 +73,10 @@ final class State {
 		editorView = new View(Vector!float(width, height));
 		currentView = editorView;
 		// TODO: customizable font
-		font = new Font([Image.load(window, buildPath(exeDir, "assets", "qbicfeet_10x10.png"))], 10);	
+		font = new Font([
+			0: Image.load(window, buildPath(exeDir, "assets", "font_0000.png")), 
+			2: Image.load(window, buildPath(exeDir, "assets", "font_0200.png"))
+		], 10);	
 		missingImage = Image.load(window, buildPath(exeDir, "assets", "missing.png"));
 		// init background grabbable
 		backgroundGrabbable = new class Grabbable {

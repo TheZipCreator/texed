@@ -275,7 +275,7 @@ class Image {
 
 /// A font
 final class Font {
-	bool[][][] bitmap; /// Bitmap of the font
+	bool[][][size_t] bitmap; /// Bitmap of the font
 	int charSize; /// Character size of the font
 	
 	/// The backup font to use when the current font doesn't have a character for something
@@ -283,17 +283,17 @@ final class Font {
 	
 	/// Creates a font from an image. Upon reading a character that is all white, the loading is terminated. (this should only be done on the last image read)
 	/// Params:
-	/// images = Images to load
+	/// images = Images to load, indexed by which group of imgSize^2 codepoints it represents
 	/// charSize = Size of each individual character
 	/// imgSize = Size of the image (image should be square)
-	this(Image[] images, int charSize, int imgSize = 16) {
+	this(Image[size_t] images, int charSize, int imgSize = 16) {
 		this.charSize = charSize;
 		foreach(imgIndex, img; images) {
+			size_t baseIndex = imgSize*imgSize*imgIndex;
 			int w = img.width, h = img.height;
 			if(w != charSize*imgSize && h != charSize*imgSize)
 				throw new Exception(format(locale["error.bad-charmap"], 16*charSize, 16*charSize, w, h));
 			Color[] pixels = img.pixels;
-
 			// probably could be more efficient but eh
 			outer: for(int i = 0; i < imgSize; i++) {
 				for(int j = 0; j < imgSize; j++) {
@@ -309,8 +309,8 @@ final class Font {
 						}
 					}
 					if(allWhite)
-						break outer;
-					bitmap ~= ch;
+						continue;
+					bitmap[baseIndex+i*imgSize+j] = ch;
 				}
 			}
 		}
@@ -318,12 +318,12 @@ final class Font {
 	
 	/// Loads the backup font.
 	static void loadBackupFont(DesktopWindow window) {
-		backupFont = new Font([Image.load(window, exeDir~"/assets/unifont.png")], 16, 256);	
+		backupFont = new Font([0: Image.load(window, exeDir~"/assets/unifont.png")], 16, 256);	
 	}	
 	
 	/// Renders a character at a position, with a given view. View may be set to null if not desired. Returns the rectangle the char took up
 	Rect!float render(SDL_Renderer* rend, Color fg, Color bg, View view, Vector!float pos, float fontSize, dchar ch, bool transform = true) {
-		if(ch >= bitmap.length) {
+		if(ch !in bitmap) {
 			if(backupFont !is null && this != backupFont)
 				return backupFont.render(rend, fg, bg, view, pos, fontSize, ch, transform);
 		}
@@ -342,7 +342,7 @@ final class Font {
 				SDL_RenderFillRectF(rend, &sdlrect);
 			}
 		}
-		if(ch >= bitmap.length)
+		if(ch !in bitmap)
 			return rect;
 		// draw each pixel
 		auto map = bitmap[ch];
@@ -494,3 +494,65 @@ class Audio {
 
 /// Struct containing nothing. Used when no data is wanted in a [ScriptableWidget].
 struct Nothing {}
+
+/// Template mixin for text editing
+mixin template TextEditor(bool allowNewline) {
+	string text; /// Text to edit
+	size_t cursorPos; /// Current cursor position
+	/// Handles an input event
+	void editText(State state, InputEvent evt) {
+		dstring str = text.toUTF32;
+		scope(exit) {
+			text = str.toUTF8;
+		}
+		if(auto ce = cast(CharacterEvent)evt) {
+			// insert
+			str = str[0..cursorPos]~ce.which~str[cursorPos..$];
+			cursorPos++;
+		}
+		else if(auto ke = cast(KeyEvent)evt) {
+			switch(ke.keysym.sym) {
+				case SDLK_LEFT:
+					// move to the left
+					if(cursorPos != 0)
+						cursorPos--;
+					break;
+				case SDLK_RIGHT:
+					// move to the right
+					if(cursorPos < str.length)
+						cursorPos++;
+					break;
+				case SDLK_BACKSPACE:
+					// ~~criss cross~~ delete
+					if(cursorPos > 0) {
+						str = str[0..cursorPos-1]~str[cursorPos..$];
+						cursorPos--;
+					}
+					break;
+				case SDLK_RETURN:
+					// insert newline if applicable
+					if(!allowNewline) {
+						if(state.selected == this)
+							state.selected = null;
+						break;
+					}
+					str = str[0..cursorPos]~'\n'~str[cursorPos..$];
+					cursorPos++;
+					break;
+				case SDLK_v:
+						if(ke.keysym.mod & KMOD_CTRL) {
+							char* text = SDL_GetClipboardText();
+							scope(exit)
+								SDL_free(text);
+							size_t prevLen = str.length;
+							str ~= text.to!string.toUTF32;
+							cursorPos += str.length-prevLen;
+						}
+						break;
+				default:
+					break;
+			}
+		}
+
+	}
+}

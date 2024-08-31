@@ -25,7 +25,7 @@
 * Comma - Go backwards 0.1s
 
 # Credits
-* REXPaint / qbicfeet - `assets/qbicfeet_10x10.png` (note: modified to align with unicode)
-* GNU Unifont - `assets/unifont.png` (note: modified to center 8-width characters)
-* easings.net - Implementation for every easing (note: translated to D).
+* REXPaint / qbicfeet - `assets/font_*.png` (heavily modified)
+* GNU Unifont - `assets/unifont.png` (modified to center 8-width characters)
+* easings.net - Implementation for every easing (translated to D).
 * @senorconejo (discord) - Brazilian Portuguese translation

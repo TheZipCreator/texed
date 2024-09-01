@@ -1,9 +1,9 @@
 /// Deals with project saving/loading
 module texed.project;
 
-import std.json, std.algorithm, std.array, std.file, std.path, std.conv;
+import std.json, std.algorithm, std.array, std.file, std.path, std.conv, std.format;
 
-import texed.misc, texed.event, texed.types, texed.app, texed.state;
+import texed.misc, texed.event, texed.types, texed.app, texed.state, texed.locale, texed.ui;
 
 enum int FORMAT_VERSION = 1; /// Current project format version
 
@@ -114,32 +114,40 @@ Event deserializeEvent(JSONValue j) {
 
 /// Saves the current project
 void saveProject(State state) {
-	state.sortAllChannels();
-	try {
-		JSONValue j;
-		j["version"] = FORMAT_VERSION;
-		j["name"] = state.name;
-		j["audio"] = state.audioPath;
-		JSONValue[][State.CHANNEL_COUNT] events;
-		for(size_t i = 0; i < State.CHANNEL_COUNT; i++) {
-			events[i] = state.events[i].map!(e => e.serialize()).array;
+	auto dir = projDir(state.name);
+	void doSave() {
+		state.sortAllChannels();
+		try {
+			JSONValue j;
+			j["version"] = FORMAT_VERSION;
+			j["name"] = state.name;
+			j["audio"] = state.audioPath;
+			JSONValue[][State.CHANNEL_COUNT] events;
+			for(size_t i = 0; i < State.CHANNEL_COUNT; i++) {
+				events[i] = state.events[i].map!(e => e.serialize()).array;
+			}
+			j["events"] = events;
+			if(!dir.exists)
+				mkdir(dir);
+			else if(!dir.isDir) {
+				remove(dir);
+				mkdir(dir);
+			}
+			write(buildPath(dir, "project.json"), j.toString(JSONOptions.specialFloatLiterals));
+		} catch(ConvException e) {
+			throw new ProjectException(e.msg);
+		} catch(JSONException e) {
+			throw new ProjectException(e.msg);
+		} catch(FileException e) {
+			throw new ProjectException(e.msg);
 		}
-		j["events"] = events;
-		auto dir = projDir(state.name);
-		if(!dir.exists)
-			mkdir(dir);
-		else if(!dir.isDir) {
-			remove(dir);
-			mkdir(dir);
-		}
-		write(buildPath(dir, "project.json"), j.toString(JSONOptions.specialFloatLiterals));
-	} catch(ConvException e) {
-		throw new ProjectException(e.msg);
-	} catch(JSONException e) {
-		throw new ProjectException(e.msg);
-	} catch(FileException e) {
-		throw new ProjectException(e.msg);
+		state.audioPath = state.defaultWindows["project"].get!TextEdit("project-audio").text;
+		state.loadAudio();
 	}
+	if(state.name != state.lastSavedName && exists(dir)) {
+		state.yesno(locale["misc.project-exists"].format(state.name), locale["confirm-save"], { doSave(); }, {});
+	}
+
 }
 
 /// Loads a project
@@ -155,6 +163,7 @@ void loadProject(string name, DesktopWindow window) {
 			throw new ProjectException("Project was made in a newer version of Texed.");
 		state = new State(window);
 		state.name = j["name"].get!string;
+		state.lastSavedName = state.name;
 		state.audioPath = j["audio"].get!string;
 		auto events = j["events"];
 		for(size_t i = 0; i < State.CHANNEL_COUNT; i++) {

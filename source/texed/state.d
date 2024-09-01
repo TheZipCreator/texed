@@ -57,6 +57,8 @@ final class State {
 
 	Image missingImage; /// Image to be used when an image can not be found
 
+	string lastSavedName = ""; /// Name of last saved project
+
 	// Project Data
 	/// Events, organized by channel
 	Event[][CHANNEL_COUNT] events;
@@ -757,8 +759,6 @@ final class State {
 		} catch(ProjectException e) {
 			error(e, locale["error.while-saving"]);
 		}
-		audioPath = defaultWindows["project"].get!TextEdit("project-audio").text;
-		loadAudio();
 		lastSavedStopwatch.reset();
 	}
 

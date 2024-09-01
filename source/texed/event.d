@@ -341,7 +341,9 @@ class CameraEvent : Event, Placeable, SceneGrabbable, Cloneable {
 			auto m = state.currentView.invTransform(mouse.to!float);
 			// TODO: this currently only cares about the x coordinate (meaning dragging
 			// only works as expected on that axis) make this work on all axes.
-			vs.zoom = snap(abs(state.cameraView.screenSize.x/(2*(m.x-vs.translation.x))), 2f);
+			float width = state.cameraView.screenSize.x;
+			float val = abs(width/(2*(m.x-vs.translation.x)));
+			vs.zoom = (width/2)/round((width/2)/val);
 		} else {
 			Vector!(float)* vec = grabbedPost ? &post.translation : &ante.translation;
 			*vec = state.currentView.invTransform((mouse-grabbedPos).to!float).snap(state.snap);

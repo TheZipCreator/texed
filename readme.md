@@ -23,6 +23,8 @@
 * Ctrl+Space - Play from camera view
 * Period - Go forwards 0.1s
 * Comma - Go backwards 0.1s
+* Right Arrow - Go forwards 1s
+* Left Arrow - Go backwards 1s
 
 # Credits
 * REXPaint / qbicfeet - `assets/font_*.png` (heavily modified)

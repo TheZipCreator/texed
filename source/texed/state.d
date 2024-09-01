@@ -408,6 +408,16 @@ final class State {
 							break;
 						currTime -= 0.1;
 						break;
+					case SDLK_LEFT:
+						if(!inEditor)
+							break;
+						currTime -= 1.0;
+						break;
+					case SDLK_RIGHT:
+						if(!inEditor)
+							break;
+						currTime += 1.0;
+						break;
 					case SDLK_v:
 						// swap view
 						currentView = currentView == editorView ? cameraView : editorView;

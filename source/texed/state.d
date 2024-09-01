@@ -540,7 +540,16 @@ final class State {
 				toPlace.preview(this);
 			}
 		} else {
-			// TODO: render black bars
+			// draw bars
+			if(cameraView.screenSize != editorView.screenSize) {
+				auto ss = editorView.screenSize;
+				auto diff = ss-cameraView.screenSize;
+				auto rightRect = SDL_FRect(ss.x-diff.x, 0, diff.x, ss.y);
+				auto bottomRect = SDL_FRect(0, ss.y-diff.y, ss.x, diff.y);
+				SDL_SetRenderDrawColor(window.rend, 128, 128, 128, 255);
+				SDL_RenderFillRectF(window.rend, &rightRect);
+				SDL_RenderFillRectF(window.rend, &bottomRect);
+			}
 		}
 
 		

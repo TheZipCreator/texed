@@ -575,7 +575,7 @@ mixin template TextEditor(bool allowNewline) {
 					}
 					for(size_t i = 0; i < col; i++) {
 						pos++;
-						if(pos > str.length || str[pos] == '\n')
+						if(pos >= str.length || str[pos] == '\n')
 							break;
 					}
 					cursorPos = cast(size_t)pos;

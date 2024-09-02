@@ -511,7 +511,7 @@ mixin template TextEditor(bool allowNewline) {
 			cursorPos++;
 		}
 		else if(auto ke = cast(KeyEvent)evt) {
-			switch(ke.keysym.sym) {
+			outer: switch(ke.keysym.sym) {
 				case SDLK_LEFT:
 					// move to the left
 					if(cursorPos != 0)
@@ -529,6 +529,58 @@ mixin template TextEditor(bool allowNewline) {
 						cursorPos--;
 					}
 					break;
+				case SDLK_UP: {
+					// move up
+					if(cursorPos == 0)
+						break;
+					long pos = cast(long)cursorPos;
+					size_t col = 0;
+					while(true) {
+						pos--;
+						col++;
+						if(pos == 0)
+							break outer;
+						if(str[pos] == '\n')
+							break;
+					}
+					pos--;
+					while(pos >= 0 && str[pos] != '\n') {
+						pos--;
+					}
+					for(size_t i = 0; i < col; i++) {
+						pos++;
+						if(str[pos] == '\n')
+							break;
+					}
+					cursorPos = cast(size_t)pos;
+					break;
+				}
+				case SDLK_DOWN: {
+					// move down
+					if(cursorPos >= str.length)
+						break;
+					long pos = cast(long)cursorPos;
+					size_t col = 0;
+					while(true) {
+						pos--;
+						col++;
+						if(pos < 0 || str[pos] == '\n')
+							break;
+					}
+					pos = cast(long)cursorPos;
+					while(str[pos] != '\n') {
+						pos++;
+						if(pos >= str.length)
+							break outer;
+					}
+					for(size_t i = 0; i < col; i++) {
+						pos++;
+						if(pos > str.length || str[pos] == '\n')
+							break;
+					}
+					cursorPos = cast(size_t)pos;
+					break;
+				}
 				case SDLK_RETURN:
 					// insert newline if applicable
 					if(!allowNewline) {

@@ -146,6 +146,8 @@ void saveProject(State state) {
 	}
 	if(state.name != state.lastSavedName && exists(dir)) {
 		state.yesno(locale["misc.project-exists"].format(state.name), locale["confirm-save"], { doSave(); }, {});
+	} else {
+		doSave();
 	}
 
 }

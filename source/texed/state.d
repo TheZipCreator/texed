@@ -76,8 +76,10 @@ final class State {
 		currentView = editorView;
 		// TODO: customizable font
 		font = new Font([
-			0: Image.load(window, buildPath(exeDir, "assets", "font_0000.png")), 
-			2: Image.load(window, buildPath(exeDir, "assets", "font_0200.png"))
+			0x00: Image.load(window, buildPath(exeDir, "assets", "font_0000.png")), 
+			0x02: Image.load(window, buildPath(exeDir, "assets", "font_0200.png")),
+			0x03: Image.load(window, buildPath(exeDir, "assets", "font_0300.png")),
+			0x1F: Image.load(window, buildPath(exeDir, "assets", "font_1f00.png"))
 		], 10);	
 		missingImage = Image.load(window, buildPath(exeDir, "assets", "missing.png"));
 		// init background grabbable

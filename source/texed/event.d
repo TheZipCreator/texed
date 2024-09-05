@@ -362,7 +362,6 @@ class CameraEvent : Event, Placeable, SceneGrabbable, Cloneable {
 	
 	///
 	Cloneable clone(State state) => new CameraEvent(start, end, easing, ante.translation, ante.zoom, post.translation, post.zoom);
-
 }
 
 /// Event that shows an image

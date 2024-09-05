@@ -627,7 +627,7 @@ final class State {
 			ret ~= w;
 		}
 		ret ~= timeSliderGrabbable;
-		foreach(channel; events) {
+		foreach_reverse(channel; events) {
 			// reversed so that events that render ontop will be grabbed ontop
 			foreach_reverse(e; channel) {
 				if(auto clickable = cast(Clickable)e)

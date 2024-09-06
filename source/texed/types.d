@@ -378,6 +378,9 @@ final class Font {
 			SDL_RenderDrawLineF(rend, pos1.x, pos1.y, pos2.x, pos2.y);
 		}
 		size_t i = 0;
+		// current position in tab
+		size_t tab = 0;
+		enum size_t TAB_WIDTH = 6;
 		foreach(dchar ch; text) {
 			// render cursor
 			if(cursor == i)
@@ -387,9 +390,15 @@ final class Font {
 				case '\n':
 					currPos.x = pos.x;
 					currPos.y += fontSize;
+					tab = 0;
 					break;
 				case '\r':
 					currPos.x = pos.x;
+					tab = 0;
+					break;
+				case '\t':
+					currPos.x += fontSize*(TAB_WIDTH-tab);
+					tab = 0;
 					break;
 				// normal rendering
 				default: {
@@ -405,6 +414,9 @@ final class Font {
 							rect.size.y = v.y;
 					}
 					currPos.x += fontSize;
+					tab++;
+					if(tab >= TAB_WIDTH)
+						tab = 0;
 				}
 			}
 			i++;
@@ -591,13 +603,18 @@ mixin template TextEditor(bool allowNewline) {
 					str = str[0..cursorPos]~'\n'~str[cursorPos..$];
 					cursorPos++;
 					break;
+				case SDLK_TAB:
+					// insert tab
+					str = str[0..cursorPos]~'\t'~str[cursorPos..$];
+					cursorPos++;
+					break;
 				case SDLK_v:
 						if(ke.keysym.mod & KMOD_CTRL) {
-							char* text = SDL_GetClipboardText();
+							char* cstr = SDL_GetClipboardText();
 							scope(exit)
-								SDL_free(text);
+								SDL_free(cstr);
 							size_t prevLen = str.length;
-							str ~= text.to!string.toUTF32;
+							str = str[0..cursorPos]~cstr.to!string.toUTF32~str[cursorPos..$];
 							cursorPos += str.length-prevLen;
 						}
 						break;
